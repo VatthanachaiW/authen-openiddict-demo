@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="3.0.0" />
+    <PackageReference Include="OpenIddict.Validation.SystemNetHttp" Version="3.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 

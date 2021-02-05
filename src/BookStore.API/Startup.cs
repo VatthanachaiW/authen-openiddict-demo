@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenIddict.Validation.AspNetCore;
 
 namespace BookStore.API
 {
@@ -26,12 +27,30 @@ namespace BookStore.API
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
+      services.Configure<IdentitySetting>(options => Configuration.GetSection(nameof(IdentitySetting)).Bind(options));
+      services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
 
-      services.AddControllers();
-      services.AddSwaggerGen(c =>
-      {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookStore.API", Version = "v1" });
-      });
+      var identitySetting = new IdentitySetting();
+      Configuration.GetSection(nameof(IdentitySetting)).Bind(identitySetting);
+
+      services.AddOpenIddict()
+        .AddValidation(options =>
+        {
+          options
+            .SetIssuer(identitySetting.EndpointUrl)
+            .AddAudiences(identitySetting.Audiences);
+
+          options.UseIntrospection()
+            .SetClientId(identitySetting.ClientId)
+            .SetClientSecret(identitySetting.ClientSecret);
+
+          options.UseSystemNetHttp();
+          options.UseAspNetCore();
+        });
+
+      services.AddControllersWithViews();
+
+      services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "BookStore.API", Version = "v1"}); });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,21 +58,20 @@ namespace BookStore.API
     {
       if (env.IsDevelopment())
       {
-        app.UseDeveloperExceptionPage();
-        app.UseSwagger();
-        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore.API v1"));
+       // app.UseDeveloperExceptionPage();
+        
       }
 
       app.UseHttpsRedirection();
 
       app.UseRouting();
+      app.UseSwagger();
+      app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore.API v1"));
 
+      app.UseAuthentication();
       app.UseAuthorization();
 
-      app.UseEndpoints(endpoints =>
-      {
-        endpoints.MapControllers();
-      });
+      app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
   }
 }

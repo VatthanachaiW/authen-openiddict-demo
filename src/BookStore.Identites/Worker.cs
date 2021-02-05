@@ -11,7 +11,7 @@ namespace BookStore.Identites
 {
   public class Worker : IHostedService
   {
-    private IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
 
     public Worker(IServiceProvider serviceProvider)
     {
@@ -47,7 +47,7 @@ namespace BookStore.Identites
           await manager.CreateAsync(new OpenIddictApplicationDescriptor
           {
             ClientId = "book_api",
-            ClientSecret = "secret",
+            //ClientSecret = "secret",
             DisplayName = "API application",
             Permissions =
             {

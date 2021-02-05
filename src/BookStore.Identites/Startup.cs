@@ -68,7 +68,13 @@ namespace BookStore.Identites
           var signInKey = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
           options.AddDevelopmentSigningCertificate();
-          options.AddEncryptionKey(securityKey);
+          options.AddEncryptionKey(new SymmetricSecurityKey(
+            Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
+          /*
+           options.AddEphemeralEncryptionKey()
+            .AddEphemeralSigningKey()
+            .AddSigningCredentials(signInKey);
+          */
 
           options.UseAspNetCore()
             .EnableTokenEndpointPassthrough()

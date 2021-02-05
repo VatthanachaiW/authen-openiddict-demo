@@ -10,7 +10,9 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 
 namespace BookStore.API
@@ -43,6 +45,9 @@ namespace BookStore.API
           options.UseIntrospection()
             .SetClientId(identitySetting.ClientId)
             .SetClientSecret(identitySetting.ClientSecret);
+
+          options.AddEncryptionKey(new SymmetricSecurityKey(
+            Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
 
           options.UseSystemNetHttp();
           options.UseAspNetCore();

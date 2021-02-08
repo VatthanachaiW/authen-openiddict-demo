@@ -35,11 +35,19 @@ namespace BookStore.Identites
             DisplayName = "Client application",
             Permissions =
             {
-              OpenIddictConstants.Permissions.Endpoints.Token,
-              OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
+              OpenIddictConstants.Permissions.Endpoints.Authorization,
+              OpenIddictConstants.Permissions.Endpoints.Logout,
+
+              OpenIddictConstants.Permissions.GrantTypes.Implicit,
+
+              OpenIddictConstants.Permissions.ResponseTypes.IdToken,
+              OpenIddictConstants.Permissions.ResponseTypes.IdTokenToken,
+              OpenIddictConstants.Permissions.ResponseTypes.Token,
+
               OpenIddictConstants.Permissions.Scopes.Email,
               OpenIddictConstants.Permissions.Scopes.Profile,
               OpenIddictConstants.Permissions.Scopes.Roles,
+
               OpenIddictConstants.Permissions.Prefixes.Scope + "api",
             }
           });
@@ -47,7 +55,7 @@ namespace BookStore.Identites
           await manager.CreateAsync(new OpenIddictApplicationDescriptor
           {
             ClientId = "book_api",
-            //ClientSecret = "secret",
+            ClientSecret = "secret",
             DisplayName = "API application",
             Permissions =
             {

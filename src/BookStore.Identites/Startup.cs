@@ -30,7 +30,7 @@ namespace BookStore.Identites
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddControllersWithViews();
+      //services.AddControllersWithViews();
 
       services.AddDbContext<ApplicationDbContext>(options =>
       {
@@ -46,8 +46,7 @@ namespace BookStore.Identites
       });
 
 
-      services
-        .AddOpenIddict()
+      services.AddOpenIddict()
         .AddCore(options =>
         {
           options.UseEntityFrameworkCore()
@@ -55,19 +54,23 @@ namespace BookStore.Identites
         })
         .AddServer(options =>
         {
-          options.SetTokenEndpointUris("/connect/token");
+          options.SetAuthorizationEndpointUris("/connect/authorize")
+            .SetLogoutEndpointUris("/connect/logout")
+            .SetIntrospectionEndpointUris("/connect/introspect")
+            .SetUserinfoEndpointUris("/connect/userinfo");
 
           options.RegisterScopes(Scopes.Email, Scopes.Profile, Scopes.Roles);
 
           options
-            .AllowClientCredentialsFlow()
-            .AllowPasswordFlow();
+            //.AllowClientCredentialsFlow()
+            .AllowImplicitFlow();
+            //.AllowPasswordFlow();
 
           var secretKey = Encoding.UTF8.GetBytes(Configuration.GetValue<string>("PasswordSecret"));
           var securityKey = new SymmetricSecurityKey(secretKey);
           var signInKey = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-          options.AddDevelopmentSigningCertificate();
+
           options.AddEncryptionKey(new SymmetricSecurityKey(
             Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
           /*
@@ -75,6 +78,8 @@ namespace BookStore.Identites
             .AddEphemeralSigningKey()
             .AddSigningCredentials(signInKey);
           */
+          options.AddDevelopmentSigningCertificate();
+
 
           options.UseAspNetCore()
             .EnableTokenEndpointPassthrough()
@@ -89,6 +94,8 @@ namespace BookStore.Identites
         });
 
       services.AddCors();
+      services.AddControllersWithViews();
+
       services.AddHostedService<Worker>();
     }
 

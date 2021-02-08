@@ -30,7 +30,11 @@ namespace BookStore.API
     public void ConfigureServices(IServiceCollection services)
     {
       services.Configure<IdentitySetting>(options => Configuration.GetSection(nameof(IdentitySetting)).Bind(options));
-      services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+
+      services.AddAuthentication(options =>
+      {
+        options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+      });
 
       var identitySetting = new IdentitySetting();
       Configuration.GetSection(nameof(IdentitySetting)).Bind(identitySetting);

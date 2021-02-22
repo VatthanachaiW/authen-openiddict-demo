@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace BookStore.Identites.Datas
+namespace BookStore.Identities.Datas
 {
   public class ApplicationDbContext : DbContext
   {

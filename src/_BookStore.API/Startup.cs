@@ -1,15 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 
@@ -27,34 +22,49 @@ namespace BookStore.API
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddAuthentication(options => { options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme; });
+      services.Configure<IdentitySetting>(options => Configuration.GetSection(nameof(IdentitySetting)).Bind(options));
+      services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+
+      var identitySetting = new IdentitySetting();
+      Configuration.GetSection(nameof(IdentitySetting)).Bind(identitySetting);
 
       services.AddOpenIddict()
         .AddValidation(options =>
         {
-          options.SetIssuer("https://localhost:5000/");
-          options.AddAudiences("book_api_resource");
+          options
+            .SetIssuer(identitySetting.EndpointUrl)
+            .AddAudiences(identitySetting.Audiences);
+
+          options.UseIntrospection()
+            .SetClientId(identitySetting.ClientId)
+            .SetClientSecret(identitySetting.ClientSecret);
 
           options.AddEncryptionKey(new SymmetricSecurityKey(
             Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
 
           options.UseSystemNetHttp();
-
           options.UseAspNetCore();
         });
-      services.AddControllers();
+
+      services.AddControllersWithViews();
+
       services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "BookStore.API", Version = "v1"}); });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-      app.UseDeveloperExceptionPage();
-      app.UseSwagger();
-      app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore.API v1"));
+      if (env.IsDevelopment())
+      {
+       // app.UseDeveloperExceptionPage();
+        
+      }
 
+      app.UseHttpsRedirection();
 
       app.UseRouting();
+      app.UseSwagger();
+      app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore.API v1"));
 
       app.UseAuthentication();
       app.UseAuthorization();

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BookStore.Identites.Datas;
+using BookStore.Identities.Datas;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
 
-namespace BookStore.Identites
+namespace BookStore.Identities
 {
   public class Worker : IHostedService
   {

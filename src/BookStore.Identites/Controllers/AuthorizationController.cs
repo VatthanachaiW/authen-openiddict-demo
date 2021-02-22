@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 
-namespace BookStore.Identites.Controllers
+namespace BookStore.Identities.Controllers
 {
   [ApiController]
   public class AuthorizationController : ControllerBase

@@ -1,19 +1,15 @@
+using System;
+using BookStore.Identities.Contexts;
+using BookStore.Identities.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BookStore.Identities.Datas;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using static OpenIddict.Abstractions.OpenIddictConstants;
+using Microsoft.OpenApi.Models;
+using OpenIddict.Abstractions;
 
 namespace BookStore.Identities
 {
@@ -27,27 +23,26 @@ namespace BookStore.Identities
     public IConfiguration Configuration { get; }
 
     // This method gets called by the runtime. Use this method to add services to the container.
-    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddControllersWithViews();
-
       services.AddDbContext<ApplicationDbContext>(options =>
       {
         options.UseSqlServer(Configuration.GetValue<string>("DefaultDbConnection"));
-        options.UseOpenIddict();
+        options.UseOpenIddict<Guid>();
       });
+
+      services.AddIdentity<ApplicationUser, ApplicationRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
       services.Configure<IdentityOptions>(options =>
       {
-        options.ClaimsIdentity.UserNameClaimType = Claims.Name;
-        options.ClaimsIdentity.UserIdClaimType = Claims.Subject;
-        options.ClaimsIdentity.RoleClaimType = Claims.Role;
+        options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
+        options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
+        options.ClaimsIdentity.RoleClaimType = OpenIddictConstants.Claims.Role;
       });
 
-
-      services
-        .AddOpenIddict()
+      services.AddOpenIddict()
         .AddCore(options =>
         {
           options.UseEntityFrameworkCore()
@@ -55,32 +50,22 @@ namespace BookStore.Identities
         })
         .AddServer(options =>
         {
-          options.SetTokenEndpointUris("/connect/token");
+          options.SetTokenEndpointUris("api/connect/token");
 
-          options.RegisterScopes(Scopes.Email, Scopes.Profile, Scopes.Roles);
+          //   options.RegisterScopes(OpenIddictConstants.Scopes.Email, OpenIddictConstants.Scopes.Profile, OpenIddictConstants.Scopes.Roles);
 
-          options
-            .AllowClientCredentialsFlow()
-            .AllowPasswordFlow();
+          options.AllowPasswordFlow();
+          options.AcceptAnonymousClients();
 
-          var secretKey = Encoding.UTF8.GetBytes(Configuration.GetValue<string>("PasswordSecret"));
-          var securityKey = new SymmetricSecurityKey(secretKey);
-          var signInKey = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-          options.AddDevelopmentSigningCertificate();
           options.AddEncryptionKey(new SymmetricSecurityKey(
             Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
-          /*
-           options.AddEphemeralEncryptionKey()
-            .AddEphemeralSigningKey()
-            .AddSigningCredentials(signInKey);
-          */
+
+
+          options.AddDevelopmentEncryptionCertificate()
+            .AddDevelopmentSigningCertificate();
 
           options.UseAspNetCore()
-            .EnableTokenEndpointPassthrough()
-            .EnableAuthorizationEndpointPassthrough()
-            .EnableUserinfoEndpointPassthrough()
-            .EnableStatusCodePagesIntegration();
+            .EnableTokenEndpointPassthrough();
         })
         .AddValidation(options =>
         {
@@ -88,17 +73,18 @@ namespace BookStore.Identities
           options.UseAspNetCore();
         });
 
-      services.AddCors();
+      services.AddControllers();
+      services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "BookStore.Identities", Version = "v1"}); });
       services.AddHostedService<Worker>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-      if (env.IsDevelopment())
-      {
-        app.UseDeveloperExceptionPage();
-      }
+      app.UseDeveloperExceptionPage();
+      app.UseSwagger();
+      app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore.Identities v1"));
+
 
       app.UseRouting();
 
@@ -110,6 +96,7 @@ namespace BookStore.Identities
         options.MapControllers();
         options.MapDefaultControllerRoute();
       });
+
       app.UseWelcomePage();
     }
   }

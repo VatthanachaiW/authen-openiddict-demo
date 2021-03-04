@@ -5,7 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+    <PackageReference Include="OpenIddict.Validation" Version="3.0.1" />
+    <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="3.0.1" />
+    <PackageReference Include="OpenIddict.Validation.SystemNetHttp" Version="3.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.0.7" />
   </ItemGroup>
 
 </Project>

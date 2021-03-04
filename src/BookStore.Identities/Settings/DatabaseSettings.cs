@@ -1,6 +1,9 @@
-﻿namespace BookStore.Identities.Settings
+﻿using System;
+
+namespace BookStore.Identities.Settings
 {
-  public class DatabaseSettings
+  [Serializable]
+  public class DatabaseSetting
   {
     public string ConnectionString { get; set; }
     public string Schema { get; set; }

@@ -21,7 +21,8 @@ namespace BookStore.Identities.Controllers
       _userManager = userManager;
     }
 
-    [Route("register")]
+    [AllowAnonymous]
+    [HttpPost("register")]
     [Produces("application/json")]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
     {

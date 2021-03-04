@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using BookStore.Identities.Contexts;
 using BookStore.Identities.Dtos.SignIns.Requests;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,8 +17,8 @@ namespace BookStore.Identities.Controllers
   [Route("api/authorization")]
   public class AuthorizationController : ControllerBase
   {
-    private SignInManager<ApplicationUser> _signInManager;
-    private UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthorizationController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
     {
@@ -25,20 +26,16 @@ namespace BookStore.Identities.Controllers
       _userManager = userManager;
     }
 
-    public async Task<IActionResult> SignInAsync(SignInRequest request)
+    [HttpPost("signin")]
+    public async Task<IActionResult> SignInAsync()
     {
       if (!ModelState.IsValid) return BadRequest();
-      var nRequest = new OpenIddictRequest
-      {
-        Username = request.Username,
-        Password = request.Password,
-        GrantType = request.GrantType,
-        Resources = request.Resources
-      };
 
-      if (nRequest.IsPasswordGrantType())
+      var request = HttpContext.GetOpenIddictServerRequest();
+
+      if (request.IsPasswordGrantType())
       {
-        var user = await _userManager.FindByNameAsync(nRequest.Username);
+        var user = await _userManager.FindByNameAsync(request.Username);
         if (user == null)
         {
           var properties = new AuthenticationProperties(new Dictionary<string, string>
@@ -50,7 +47,7 @@ namespace BookStore.Identities.Controllers
           return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, nRequest.Password, lockoutOnFailure: true);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
         if (!result.Succeeded)
         {
           var properties = new AuthenticationProperties(new Dictionary<string, string>
@@ -71,7 +68,7 @@ namespace BookStore.Identities.Controllers
           OpenIddictConstants.Scopes.Email,
           OpenIddictConstants.Scopes.Profile,
           OpenIddictConstants.Scopes.Roles
-        }.Intersect(nRequest.GetScopes()));
+        }.Intersect(request.GetScopes()));
 
         foreach (var claim in principal.Claims)
         {

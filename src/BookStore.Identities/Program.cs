@@ -1,4 +1,6 @@
+using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace BookStore.Identities
@@ -12,9 +14,17 @@ namespace BookStore.Identities
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
+          .ConfigureAppConfiguration((context, config) =>
+          {
+            config.SetBasePath(AppDomain.CurrentDomain.BaseDirectory);
+            config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            config.AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+           // config.AddJsonFile($"swaggersettings.json", optional: false, reloadOnChange: true);
+            config.AddEnvironmentVariables();
+          })
+            .ConfigureWebHostDefaults(builder =>
             {
-              webBuilder.UseStartup<Startup>();
+              builder.UseStartup<Startup>();
             });
   }
 }

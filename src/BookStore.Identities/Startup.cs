@@ -32,13 +32,13 @@ namespace BookStore.Identities
       services.Configure<DatabaseSetting>(options => Configuration.GetSection(nameof(DatabaseSetting)).Bind(options));
       services.Configure<TokenSetting>(options => Configuration.GetSection(nameof(TokenSetting)).Bind(options));
 
-      var databaseConfigure = Configuration.GetSection(nameof(Settings.TokenSetting));
+      var databaseConfigure = Configuration.GetSection(nameof(Settings.DatabaseSetting));
       services.Configure<DatabaseSetting>(databaseConfigure);
       var databaseSetting = databaseConfigure.Get<DatabaseSetting>();
 
       var tokenConfigure = Configuration.GetSection(nameof(TokenSetting));
       services.Configure<TokenSetting>(tokenConfigure);
-      var tokenSetting = databaseConfigure.Get<TokenSetting>();
+      var tokenSetting = tokenConfigure.Get<TokenSetting>();
 
       services.AddDbContext<ApplicationDbContext>(options =>
       {
@@ -69,7 +69,8 @@ namespace BookStore.Identities
         .AddCore(options =>
         {
           options.UseEntityFrameworkCore()
-            .UseDbContext<ApplicationDbContext>();
+            .UseDbContext<ApplicationDbContext>()
+            .ReplaceDefaultEntities<Guid>();
         }).AddServer(options =>
         {
           options.SetTokenEndpointUris("/api/authorization/signin");
@@ -80,15 +81,13 @@ namespace BookStore.Identities
           var secretKey = Encoding.UTF8.GetBytes(tokenSetting.Secret);
           var securityKey = new SymmetricSecurityKey(secretKey);
           var signInCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512);
-          var signCertificate = new X509Certificate2(secretKey);
-          var signCredentials = new X509SigningCredentials(signCertificate);
 
-          options.AddSigningCertificate(signCertificate);
+
+          options.AddDevelopmentSigningCertificate();
           options.AddEncryptionKey(securityKey);
 
           options.UseAspNetCore()
             .EnableTokenEndpointPassthrough();
-
         }).AddValidation(options =>
         {
           options.UseLocalServer();

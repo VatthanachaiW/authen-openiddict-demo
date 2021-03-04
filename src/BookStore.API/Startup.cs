@@ -1,17 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using System.Text;
+using BookStore.API.Settings;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookStore.API
@@ -29,10 +23,24 @@ namespace BookStore.API
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddCors();
+
+
+      var tokenConfigure = Configuration.GetSection(nameof(TokenSetting));
+      services.Configure<TokenSetting>(tokenConfigure);
+      var tokenSetting = tokenConfigure.Get<TokenSetting>();
+
       services.AddOpenIddict()
         .AddValidation(options =>
         {
-          options.SetIssuer(new Uri("https://localhost:44365/"));
+          options.SetIssuer("https://localhost:5000/");
+          options.AddAudiences("book_api_resource");
+
+          var secretKey = Encoding.UTF8.GetBytes(tokenSetting.Secret);
+          var securityKey = new SymmetricSecurityKey(secretKey);
+          options.AddEncryptionKey(securityKey);
+
+          options.UseSystemNetHttp();
+
           options.UseAspNetCore();
           options.UseSystemNetHttp();
         });
@@ -54,9 +62,16 @@ namespace BookStore.API
 
       app.UseRouting();
 
+      app.UseCors(options => { options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
+
+      app.UseAuthentication();
       app.UseAuthorization();
 
-      app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+      app.UseEndpoints(endpoints =>
+      {
+        endpoints.MapControllers();
+        endpoints.MapDefaultControllerRoute();
+      });
     }
   }
 }

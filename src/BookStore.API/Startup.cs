@@ -32,7 +32,7 @@ namespace BookStore.API
       services.AddOpenIddict()
         .AddValidation(options =>
         {
-          options.SetIssuer("https://localhost:5000/");
+          options.SetIssuer("https://localhost:5002/");
           options.AddAudiences("book_api_resource");
 
           options.AddEncryptionKey(new SymmetricSecurityKey(

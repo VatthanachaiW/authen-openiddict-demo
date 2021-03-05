@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookStore.Identities.Controllers
 {
-  [Route("/api/account")]
+  [Route("api/account")]
   [Authorize]
   public class AccountController : ControllerBase
   {

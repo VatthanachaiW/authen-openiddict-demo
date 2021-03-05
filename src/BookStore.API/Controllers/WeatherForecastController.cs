@@ -10,7 +10,6 @@ namespace BookStore.API.Controllers
 {
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
   public class WeatherForecastController : ControllerBase
   {
     private static readonly string[] Summaries = new[]
@@ -26,6 +25,7 @@ namespace BookStore.API.Controllers
     }
 
     [HttpGet]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public IEnumerable<WeatherForecast> Get()
     {
       var rng = new Random();

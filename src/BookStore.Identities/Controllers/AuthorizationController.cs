@@ -7,6 +7,7 @@ using BookStore.Identities.Contexts;
 using BookStore.Identities.Dtos.SignIns.Requests;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
@@ -27,6 +28,8 @@ namespace BookStore.Identities.Controllers
     }
 
     [HttpPost("signin")]
+    [AllowAnonymous]
+    [Produces("application/json")]
     public async Task<IActionResult> SignInAsync()
     {
       if (!ModelState.IsValid) return BadRequest();

@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using BookStore.Identities.Contexts;
 using BookStore.Identities.Settings;
@@ -29,6 +27,9 @@ namespace BookStore.Identities
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
+      services.AddCors();
+      services.AddControllersWithViews();
+
       services.Configure<DatabaseSetting>(options => Configuration.GetSection(nameof(DatabaseSetting)).Bind(options));
       services.Configure<TokenSetting>(options => Configuration.GetSection(nameof(TokenSetting)).Bind(options));
 
@@ -74,8 +75,9 @@ namespace BookStore.Identities
         }).AddServer(options =>
         {
           options.SetTokenEndpointUris("/api/authorization/signin");
-          options.RegisterScopes(OpenIddictConstants.Scopes.Email, OpenIddictConstants.Scopes.Profile, OpenIddictConstants.Scopes.Roles);
           options.AllowPasswordFlow();
+          //options.RegisterScopes(OpenIddictConstants.Scopes.Email, OpenIddictConstants.Scopes.Profile, OpenIddictConstants.Scopes.Roles);
+
           options.AcceptAnonymousClients();
 
           var secretKey = Encoding.UTF8.GetBytes(tokenSetting.Secret);
@@ -94,26 +96,25 @@ namespace BookStore.Identities
           options.UseAspNetCore();
         });
 
-      services.AddCors();
-      services.AddControllers();
-      services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "BookStore.Identites", Version = "v1"}); });
+
+      services.AddSwaggerGen(c =>
+      {
+        c.SwaggerDoc("v1", new OpenApiInfo {Title = "BookStore.Identites", Version = "v1"});
+      });
       services.AddHostedService<Worker>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-      if (env.IsDevelopment())
-      {
-        app.UseDeveloperExceptionPage();
-      }
+      app.UseDeveloperExceptionPage();
 
       app.UseSwagger();
       app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore.Identites v1"));
 
       app.UseRouting();
 
-      app.UseCors(options => { options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
+      //  app.UseCors(options => { options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
 
       app.UseAuthentication();
       app.UseAuthorization();
